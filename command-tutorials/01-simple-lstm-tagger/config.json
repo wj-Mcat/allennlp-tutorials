@@ -1,0 +1,33 @@
+{
+  "dataset_reader": {
+    "type": "pos"
+  },
+  "train_data_path": "./code-tutorials/01-simple-lstm-tagger/data/train.txt",
+  "test_data_path": "./code-tutorials/01-simple-lstm-tagger/data/validation.txt",
+  "model": {
+    "type": "lstm-tagger",
+    "word_embeddings": {
+      "token_embedders": {
+        "tokens": {
+          "embedding_dim":6
+        }
+      }
+    },
+    "encoder": {
+      "type": "lstm",
+      "input_size": 6,
+      "hidden_size": 10
+    }
+  },
+  "iterator": {
+    "type": "bucket",
+    "sorting_keys": [["sentence", "num_tokens"]],
+    "batch_size": 2
+  },
+  "trainer": {
+    "num_epochs": 700,
+    "optimizer": {
+      "type": "adagrad"
+    }
+  }
+}
