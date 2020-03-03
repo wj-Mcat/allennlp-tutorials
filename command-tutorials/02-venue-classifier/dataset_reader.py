@@ -11,6 +11,7 @@ from allennlp.data.instance import Instance
 from allennlp.data.tokenizers import Tokenizer, WordTokenizer
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 
+@DatasetReader.register("ss_dataset_reader")
 class SemanticScholarDatasetReader(DatasetReader):
     def __init__(self,
                  lazy: bool = False,
