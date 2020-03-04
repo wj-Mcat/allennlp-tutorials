@@ -91,7 +91,7 @@ class PosDatasetReader(DatasetReader):
 
 细心的朋友会发现，我们重写的是_read函数，这是一个似有函数的名称，也是整个数据读取最核心的函数。我们只需要实现这个函数，其他数据整理与读取进度条的展示等附带功能就会自动帮我们完成。
 
-### 不同类型的Field
+## 不同类型的Field
 
 DatasetReader最终返回的是Instance实例的集合，而Instance实际上是一个字典类型的数据：`MutableMapping[str, Field]`，value是Field类型的数据，常用的Field类型有：
 
@@ -140,7 +140,7 @@ sentence字段的处理分为以下几个阶段：
 1. tokenizer -> 分词
 2. Token     -> 转化为单个Token对象
 3. Instance  -> 转化为Instance实例
-4. Iterator  -> 数据转化成idx，并组装成batch模式
+4. Iterator  -> 并组装成batch模式
 5. model.forward -> 塞给模型去执行
 6. token_embedders -> 将idx转化成词向量
 
@@ -179,9 +179,11 @@ instance = {
 }
 ```
 
-4. **Iterator -> 数据转化成idx，并组装成batch模式**
+4. **Iterator -> 组装成batch模式**
 
-这个过程或许看不见，可是逻辑基本上固定，无需任何定制，故只需要传递部分参数即可完成。
+这个过程或许看不见，可是逻辑基本上固定，如无特殊需求，无需定制。
+
+将Instance转化成idx的伪代码如下所示：
 
 ```python
 instance = {
@@ -191,6 +193,33 @@ instance = {
     }
 }
 ```
+
+然而，Iterator看似简单，可还有一些细节我想与大家聊聊：
+
+- 在batch数据的时候，同batch中不同长度的数据是需要pad
+- 为了pad过程的**性能**，可优先将长度相近的文本放置在同一个batch中
+- 随机打乱数据
+
+Allennlp已经内置了几个DataIterator，几乎不需要你自己重写，除非你在batch的过程中，完成一些创新性的小trick。
+
+示例代码如下：
+
+```python
+from allennlp.data.iterators import BucketIterator
+ 
+iterator = BucketIterator(batch_size=config.batch_size, 
+                          biggest_batch_first=True,
+                          sorting_keys=[("tokens", "num_tokens")],
+                         )
+iterator.index_with(vocab)
+```
+
+- sorting_keys 能够提升padding过程效率。
+- index_with(vocab)非常重要：给token_indexers配置vocabulary。**这一步千万不要给忘记了**为什么要这样做呢？
+    1. token_indexers是在dataset_reader初始化的时候才存在的，而vocabulary是需要基于dataset_reader读取的Instance集合才能够进行构建的，故此处矛盾，无法指定。
+    2. token_indexers并非不能提取成一个单独的模块来指定Vocabulary，可从软件设计的角度来看，Field依赖于token_indexers，需要在初始化的时候就指定，故无法设计成一个单独的模块。
+    3. 在iterator中指定vocabulary，然后由iterator将其传递给token_indexer的tokens_to_indices这个函数，此处的一个小trick就解决来依赖性的一个问题。
+
 
 5. **model.forward -> 模型的参数**
 
@@ -218,8 +247,21 @@ Awesome～～
 
 6. **token_embedders -> 词向量映射**
 
-写猛了，是在上面已经把这快的内容给写完了。
+其实如何将将文本索引映射到词向量，第五点就已经说了。其核心需要注意的就是：
+- token_indexers和token_embedders都是字典类型，且键值必须保持一致
+- token_embedders处理后的词向量是拼接到一起**（这个特性非常棒）**
 
-到此，我将其中数据如何处理模块聊完了，接下来，注意力就要放在模型上了。
+至此，我们跟随着sentence字段从读取到映射成词向量整个流程都已经聊完了，相信都已经掌握了。
 
-下篇
+至此，我已经将模型执行之前所有的注意点都给聊完了。
+
+
+## Model
+
+建议看看源码，因为看了源码你才会发现，Allennlp的model和module都是基于Pytorch的torch.nn.Module模块建立，所以我们可以很容易的使用Allennlp中的任何类。
+
+为了说明Allennlp中的模型，我先与Pytorch中的模型做一个对比说明：
+
+- Allennlp中的forward函数参数有的是一个字典类型（类似于TextField指定了TokenIndexer）的数据，有的是纯torch.Tensor数据。而Pytorch中的数据格式没有限制，自由度由自己控制，但推荐是torch.Tensor数据类型。
+- Allennlpforward函数返回的也是一个字典类型的数据，其中最重要的就是损失函数值，必须将其存储在loss键下（这是一个**约定**），同时loss值的一个计算也是在forward函数中执行的。
+- 

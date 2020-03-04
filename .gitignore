@@ -1,3 +1,5 @@
 */output/*
 .idea/
 .vscode/
+command-tutorials/01-simple-lstm-tagger/output/
+command-tutorials/01-simple-lstm-tagger/output
