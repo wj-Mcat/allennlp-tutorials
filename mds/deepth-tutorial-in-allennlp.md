@@ -323,4 +323,39 @@ class BaselineModel(Model):
         return output
 ```
 
-上面代码中，encoder是Seq2VecEncoder（基类）类型，可以随意改变encoder的实现，而并不改变模型内部的代码，实现组件的单独替换。
+上面代码中，encoder是Seq2VecEncoder（基类）类型，故可更改encoder的实现，并不改变模型内部的代码，实现组件的单独替换，而我们所需要做的，只需要添加Seq2VecEncoder的派生类即可。
+
+这就是Allennlp的强大之处：所有的流程都抽象化，具体实现只需要自己指定或实现就行。
+
+## Train
+
+接下来就该讨论模型的**训练流程**了。
+
+相比Pytorch繁杂且毫无新特性的训练过程，Keras和tensorflow框架就做的很好，只需要简单的几行代码就可以替代Pytorch多行手动编制的训练loop。
+
+Allennlp抽象了一个Trainer，用来执行训练过程：更新梯度，保存日志文件（用tensorboard查看），保存best_model，良好的训练过程输出等等，这个训练器大大减少了我们的工作量。
+
+示例代码如下，也是非常简单：
+
+```python
+from allennlp.training.trainer import Trainer
+ 
+trainer = Trainer(
+    model=model,
+    optimizer=optim.Adam(model.parameters(), lr=config.lr),
+    iterator=iterator,
+    train_dataset=train_ds,
+    cuda_device=0 if USE_GPU else -1,
+    num_epochs=config.epochs,
+)
+
+trainer.train()
+```
+
+配置完Trainer，只需要指定train函数即可完成训练的整个过程。
+
+# 总结
+
+Allennlp非常好用，也有足够的定制化能力，如果与Transformer结合在一起，那就更加完美了。
+
+[allennlp-tutorials](https://github.com/wj-Mcat/allennlp-tutorials)
