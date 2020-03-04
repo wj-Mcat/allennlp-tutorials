@@ -262,6 +262,65 @@ Awesome～～
 
 为了说明Allennlp中的模型，我先与Pytorch中的模型做一个对比说明：
 
+示例代码如下：
+```python
+def forward(self, tokens: Dict[str, torch.Tensor],
+                id: Any, label: torch.Tensor) -> torch.Tensor:
+        mask = get_text_field_mask(tokens)
+        embeddings = self.word_embeddings(tokens)
+        state = self.encoder(embeddings, mask)
+        class_logits = self.projection(state)
+         
+        output = {"class_logits": class_logits}
+        output["loss"] = self.loss(class_logits, label)
+ 
+        return output
+```
+
 - Allennlp中的forward函数参数有的是一个字典类型（类似于TextField指定了TokenIndexer）的数据，有的是纯torch.Tensor数据。而Pytorch中的数据格式没有限制，自由度由自己控制，但推荐是torch.Tensor数据类型。
 - Allennlpforward函数返回的也是一个字典类型的数据，其中最重要的就是损失函数值，必须将其存储在loss键下（这是一个**约定**），同时loss值的一个计算也是在forward函数中执行的。
-- 
+
+至此，我们已经了解为什么forward函数有的参数为什么是字典类型。那我这里想问一个问题：
+
+为什么forward函数返回的值也是字典类型？
+答：因为在Trainer中有大用处，后面我会进一步讲解。
+
+Allennlp为什么会这么好用呢？
+
+答：因为里面将很多类似的组件，并将其抽象成模块来使用，常用的有：
+
+- token_embedder
+- encoder
+- decoder
+
+示例代码如下：
+
+```python
+from allennlp.nn.util import get_text_field_mask
+from allennlp.models import Model
+from allennlp.modules.text_field_embedders import TextFieldEmbedder
+ 
+class BaselineModel(Model):
+    def __init__(self, word_embeddings: TextFieldEmbedder,
+                 encoder: Seq2VecEncoder,
+                 out_sz: int=len(label_cols)):
+        super().__init__(vocab)
+        self.word_embeddings = word_embeddings
+        self.encoder = encoder
+        self.projection = nn.Linear(self.encoder.get_output_dim(), out_sz)
+        self.loss = nn.BCEWithLogitsLoss()
+         
+    def forward(self, tokens: Dict[str, torch.Tensor],
+                id: Any, label: torch.Tensor) -> torch.Tensor:
+        mask = get_text_field_mask(tokens)
+        embeddings = self.word_embeddings(tokens)
+        state = self.encoder(embeddings, mask)
+        class_logits = self.projection(state)
+         
+        output = {"class_logits": class_logits}
+        output["loss"] = self.loss(class_logits, label)
+ 
+        return output
+```
+
+上面代码中，encoder是Seq2VecEncoder（基类）类型，可以随意改变encoder的实现，而并不改变模型内部的代码，实现组件的单独替换。
