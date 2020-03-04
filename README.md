@@ -6,6 +6,11 @@
 
 同时本教程包含所有训练数据，当然是通过裁剪的。
 
+- blogs
+    - [simple-tagger-tutorials](mds/simple-tagger-tutorials.md)
+    - [how-to-debug-with-allennlp](mds/how-to-debug-with-allennlp.md)
+    - [an deep introduce of allennlp](mds/deepth-tutorial-in-allennlp.md)
+
 - code-tutorials
     - [01_simple-lstm-tagger](code-tutorials/01-simple-lstm-tagger/train.ipynb)
     - [02-venue-classifier](code-tutorials/02-venue-classifier/train.ipynb)
