@@ -2,34 +2,36 @@
 
 本次将要介绍的是Allennlp框架，这是一个基于Pytorch，面向深度学习中的自然语言处理领域的框架，提供了众多的新兴算法和预训练模型，只需要简单的几行代码就可以完成很棒的功能。
 
-本次教程不是单纯的空泛的介绍，而是先讲理论，再通过一个simple-classifier模型，让大家充分理解其中的原理及训练流程。
+本次教程，通过示例代码来讲解不同模块的使用方法和原理，希望通过本篇博文，大家能够顺利使用上[Allennlp](https://github.com/allenai/allennlp)，因为相比纯手动撸Pytorch，Allennlp真的能够加速Idea的实现。
 
-希望通过这篇博文，能够开始用上Allennlp，因为这个库是真的好用，良心推荐。
+> 参考论文：[AllenNLP: A Deep Semantic Natural Language Processing Platform](https://arxiv.org/abs/1803.07640)
 
 # 介绍
 
-个人认为Allennlp讲NLP任务处理流程中的各个阶段都做了一定程度的抽象，在软件工程上讲就是，高内聚，低耦合，让我们可以改动其中任一流程，而并不需要修改其他流程的配置。
+Allennlp将NLP任务处理流程中的各个阶段都做了一定程度的抽象，在软件设计上讲就是，实现了高内聚，低耦合，让我们能够专注于特定模块的逻辑，而无需其他流程的改动，极大程度上减少了工作量。
 
-包含的概念有：
+那常用且重要的处理流程有：
+
 - DatasetReader：从文件中读取数据，转化为Instance集合
-- Model：待训练的模型
+- Model：模型主体
 - Iterator：迭代数据，提取batch数据
 - Trainer：模型训练器，并记录metric
-- Predictor：用以Predict数据
+- Predictor：使用训练好的模型来预测数据
 
-以上每个pipeline是松耦合的，比如说vocab_size，hidden_dim,等不需要指定单独配置，可通过上一个管道的接口而获取，大大减少了配置上的工作量，不过同时也需要你能够对其很了解才行，不然会感觉这东东又是从哪里冒出来的。
 
-每个NLP任务，都是从DatasetReader开始，那么接下来就聊聊这是个什么好东西。
+以上每个pipeline是松耦合的，比如说从DatasetReader读取的vocab_size，input_embedding,等不需要单独配置，而是可以通过Vocabulary中的接口而获取。
+
+每个NLP任务，都是从数据预处理开始，我们就先从DatasetReader开始将，然后顺着数据的处理流程来讲解其中不同的概念 ...
 
 ## DatasetReader
 
-读取数据，无聊且重要，而Allennlp中的DatasetReader将无聊繁琐的事情全部封装起来，只关注于核心的数据读取，其他事情基本上都帮我们做完了。
-
-我们需要完成的功能主要有：
+数据预处理，繁琐无聊但又少不了，而Allennlp让我们只关注于核心的数据读取，其他无聊的事情都帮我们做好，通用的东西绝对不让我们重复编码，因此我们只需要完成微乎几微的逻辑处理，比如在DatasetReader我们只需要实现两个函数即可：_read , text_to_instance，其内部实现的功能如下：
 
 1. 从本地读取数据
 2. 从数据中读取相关数据字段
 3. 将提取的数据转化成Instance数组
+
+![dataset-reader](../assert/allennlp-dataset-reader.png)
 
 示例代码如下：
 
@@ -260,6 +262,8 @@ Awesome～～
 
 建议看看源码，因为看了源码你才会发现，Allennlp的model和module都是基于Pytorch的torch.nn.Module模块建立，所以我们可以很容易的使用Allennlp中的任何类。
 
+![dataset-reader](../assert/allennlp-dataset-reader.png)
+
 为了说明Allennlp中的模型，我先与Pytorch中的模型做一个对比说明：
 
 示例代码如下：
@@ -356,6 +360,12 @@ trainer.train()
 
 # 总结
 
-Allennlp非常好用，也有足够的定制化能力，如果与Transformer结合在一起，那就更加完美了。
+Allennlp非常好用，也有足够的定制化能力，也可以和Transformer完美结合在一起，同时也支持**semantic parsing**，**state machine**，未来也会添加更多更强大的模块。
 
 [allennlp-tutorials](https://github.com/wj-Mcat/allennlp-tutorials)
+
+
+# 参考链接：
+
+- [an-in-depth-tutorial-to-allennlp-from-basics-to-elmo-and-bert](http://mlexplained.com/2019/01/30/an-in-depth-tutorial-to-allennlp-from-basics-to-elmo-and-bert/)
+- [AllenNLP: A Deep Semantic Natural Language Processing Platform](https://arxiv.org/abs/1803.07640)
