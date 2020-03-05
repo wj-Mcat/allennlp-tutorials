@@ -1,3 +1,5 @@
+![dataset-reader](../assert/allennlp-introduce.png)
+
 # 前言
 
 本次将要介绍的是Allennlp框架，这是一个基于Pytorch，面向深度学习中的自然语言处理领域的框架，提供了众多的新兴算法和预训练模型，只需要简单的几行代码就可以完成很棒的功能。
