@@ -2,17 +2,17 @@
 
 # 前言
 
-本次将要介绍的是Allennlp框架，这是一个基于Pytorch，面向深度学习中的自然语言处理领域的框架，提供了众多的新兴算法和预训练模型，只需要简单的几行代码就可以完成很棒的功能。
+本次将要介绍的是[Allennlp](https://github.com/allenai/allennlp)框架，这是一个基于Pytorch，面向深度学习中的自然语言处理领域的框架，提供了众多的新兴算法和预训练模型，只需要简单的几行代码就可以完成很棒的功能。
 
-本次教程，通过示例代码来讲解不同模块的使用方法和原理，希望通过本篇博文，大家能够顺利使用上[Allennlp](https://github.com/allenai/allennlp)，因为相比纯手动撸Pytorch，Allennlp真的能够加速Idea的实现。
+本次教程，通过示例代码来讲解不同模块的使用方法和原理，希望通过本篇博文，大家能够顺利使用上[Allennlp](https://github.com/allenai/allennlp)，因为相比纯手动撸Pytorch，[Allennlp](https://github.com/allenai/allennlp)真的能够加速Idea的实现。
 
 > 参考论文：[AllenNLP: A Deep Semantic Natural Language Processing Platform](https://arxiv.org/abs/1803.07640)
 
-# 介绍
+# 概念
 
 Allennlp将NLP任务处理流程中的各个阶段都做了一定程度的抽象，在软件设计上讲就是，实现了高内聚，低耦合，让我们能够专注于特定模块的逻辑，而无需其他流程的改动，极大程度上减少了工作量。
 
-那常用且重要的处理流程有：
+那基础且重要的处理流程有：
 
 - DatasetReader：从文件中读取数据，转化为Instance集合
 - Model：模型主体
@@ -21,13 +21,13 @@ Allennlp将NLP任务处理流程中的各个阶段都做了一定程度的抽象
 - Predictor：使用训练好的模型来预测数据
 
 
-以上每个pipeline是松耦合的，比如说从DatasetReader读取的vocab_size，input_embedding,等不需要单独配置，而是可以通过Vocabulary中的接口而获取。
+以上每个流程是松耦合的，没有强关联，需要全局配置的东西非常少。比如在NLP处理中最常见的一个：num_embedding/vocab_size 需要提前全局给定，或者使用单独的配置来存储，只不过带来的问题就是这个配置在很多地方都可能会使用到，故参数的传递就又会增加代码的冗杂度，使用起来很不方便。在Allennlp中会有一个vocabulary全局存储，无需单独配置，且提供函数接口调用获取，非常简单。
 
-每个NLP任务，都是从数据预处理开始，我们就先从DatasetReader开始将，然后顺着数据的处理流程来讲解其中不同的概念 ...
+那么接下来我将随着NLP的任务处理流程来讲解不同流程的不同组件使用方法，首先就是DatasetReader ...
 
 ## DatasetReader
 
-数据预处理，繁琐无聊但又少不了，而Allennlp让我们只关注于核心的数据读取，其他无聊的事情都帮我们做好，通用的东西绝对不让我们重复编码，因此我们只需要完成微乎几微的逻辑处理，比如在DatasetReader我们只需要实现两个函数即可：_read , text_to_instance，其内部实现的功能如下：
+数据预处理，繁琐无聊但又少不了，而Allennlp让我们只关注于核心的数据读取，通用的东西早已封装好，核心的逻辑一个都逃不了，比如在DatasetReader我们只需要实现两个函数：_read , text_to_instance，即可完成数据预处理整个流程，其他的比如build_vocabulary, idx2word, word2idx, get_vocab_size等都帮我们做袅，就问你这个工具棒不棒，妙不妙。
 
 1. 从本地读取数据
 2. 从数据中读取相关数据字段
